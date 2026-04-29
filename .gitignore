@@ -1,0 +1,23 @@
+# Build artifacts
+.build/
+.swiftpm/
+Package.resolved
+DerivedData/
+*.xcodeproj/
+
+# Generated app bundle
+TailGui.app/
+*.app/
+
+# macOS junk
+.DS_Store
+._*
+
+# Editor
+.vscode/
+.idea/
+*.swp
+
+# User-specific
+xcuserdata/
+*.xcuserstate
