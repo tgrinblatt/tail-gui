@@ -15,9 +15,18 @@ If you trigger Draw Things renders from background tasks (e.g. via Claude Code),
   - **Recent clips** — last completed clips with frame count and duration
 - **Floating window** — pin it on top of other apps (⌘P).
 - **Adjustable transparency** — popover with slider + 100/85/70/50/35% presets.
-- **Light / Dark / System appearance** — toolbar toggle (⇧⌘D).
+- **Light / Dark appearance** — binary toolbar toggle (⇧⌘D).
 - **Raw log fallback** — toggle to view the unparsed output if you ever need it.
 - **Native-feeling** — `NavigationSplitView`, SF Symbols, system materials, HIG-correct toolbar idioms.
+
+## Featured UI patterns
+
+Two reusable cluster patterns at the top of the window — designed to be portable into other floating-utility apps you build:
+
+- **Sidebar Toggle** (top-left, just right of the traffic lights) — the auto-inserted collapse/expand button from `NavigationSplitView`. With `.windowStyle(.hiddenTitleBar)` it lives inside the sidebar's material; when the sidebar fully collapses, macOS automatically wraps it in a soft rounded glass-material chip.
+- **HoverToggles** (top-right) — three controls that govern how the app *appears*: appearance toggle (Light ↔ Dark, ⇧⌘D), opacity dropdown with slider + 5 presets, and pin-on-top (⌘P). Designed for "power-multiplier" floating utilities where a designer needs to see what's underneath: light/dark for visibility against any backdrop, opacity for see-through, pin for keeping it on top.
+
+The pin button uses `Toggle(isOn:).toggleStyle(.button)` so macOS automatically tints its container with the system accent color when active — the same blue-padded highlight you see on Activity Monitor's "Keep on Top." HoverToggles are positioned to the trailing edge via a `ToolbarItem(placement: .principal) { Spacer() }` trick (a workaround for a SwiftUI / NavigationSplitView quirk where `.primaryAction` items pack at the leading edge of the detail pane instead of the window's true trailing edge).
 
 ## Requirements
 
