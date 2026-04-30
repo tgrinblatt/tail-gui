@@ -1,5 +1,13 @@
 import Foundation
 
+enum RenderPhase: Equatable {
+    case starting
+    case sampling
+    case encoding
+    case betweenClips
+    case done
+}
+
 struct RenderState: Equatable {
     var outputFolder: String?
     var totalPasses: Int?
@@ -21,6 +29,8 @@ struct RenderState: Equatable {
     var currentClipSource: String?
     var currentPrompt: String?
     var currentStep: Int?
+
+    var phase: RenderPhase = .starting
 
     var completedClips: [CompletedClip] = []
     var lastUpdate: Date = .init()

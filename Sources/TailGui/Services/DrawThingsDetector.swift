@@ -86,7 +86,7 @@ enum DrawThingsDetector {
                 if softHits >= 2 { return .confirmed }
             }
         }
-        if pathOK { return .pending }
+        if softHits >= 1 && pathOK { return .pending }
         return .rejected
     }
 

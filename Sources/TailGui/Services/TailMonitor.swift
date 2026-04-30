@@ -5,6 +5,8 @@ import Combine
 final class TailMonitor: ObservableObject {
     @Published private(set) var sessions: [TailSession] = []
 
+    let healthChecker = RenderHealthChecker()
+
     private var timer: Timer?
     private let scanInterval: TimeInterval = 2.0
     private let staleGrace: TimeInterval = 5.0
@@ -20,12 +22,14 @@ final class TailMonitor: ObservableObject {
         }
         RunLoop.main.add(t, forMode: .common)
         timer = t
+        healthChecker.start()
         Task { @MainActor in await tick() }
     }
 
     func stop() {
         timer?.invalidate()
         timer = nil
+        healthChecker.stop()
         for session in sessions {
             session.markTerminated()
         }
@@ -34,11 +38,30 @@ final class TailMonitor: ObservableObject {
     }
 
     private func tick() async {
-        let scanned = await ProcessScanner.scan()
-        applyScan(scanned)
+        async let tailProcs = ProcessScanner.scan()
+        async let activeFiles = OutputFileScanner.scan()
+        let combined = await mergeByPath(tails: tailProcs, files: activeFiles)
+        applyScan(combined)
+        let currentHealth = healthChecker.health
         for session in sessions {
+            if session.health != currentHealth {
+                session.health = currentHealth
+            }
             session.recomputeStatus()
         }
+    }
+
+    private func mergeByPath(tails: [TailProcess], files: [TailProcess]) -> [TailProcess] {
+        var seenPaths = Set<String>()
+        var out: [TailProcess] = []
+        for t in tails {
+            seenPaths.insert(t.filePath)
+            out.append(t)
+        }
+        for f in files where !seenPaths.contains(f.filePath) {
+            out.append(f)
+        }
+        return out
     }
 
     private func applyScan(_ scanned: [TailProcess]) {

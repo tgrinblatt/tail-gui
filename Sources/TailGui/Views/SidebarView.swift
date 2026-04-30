@@ -15,6 +15,7 @@ struct SidebarView: View {
                         .tag(session.id as TailSession.ID?)
                 }
                 .listStyle(.sidebar)
+                .scrollContentBackground(.hidden)
             }
         }
         .navigationTitle("Renders")
@@ -30,7 +31,7 @@ struct SidebarView: View {
             Text("No Draw Things renders detected")
                 .font(.headline)
                 .multilineTextAlignment(.center)
-            Text("Tail Gui watches for `tail -f` on Draw Things output files. Start a render — it will appear here.")
+            Text("Tail Gui auto-detects active Draw Things renders writing to Claude Code task outputs. Start one — it will appear here.")
                 .font(.caption)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)

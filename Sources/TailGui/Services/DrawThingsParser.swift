@@ -63,6 +63,7 @@ enum DrawThingsParser {
             state.currentClipSource = clip.source
             state.currentPrompt = nil
             state.currentStep = nil
+            state.phase = .betweenClips
             return
         }
         if trimmed.hasPrefix("prompt:") {
@@ -72,13 +73,24 @@ enum DrawThingsParser {
         }
         if let step = matchStep(trimmed) {
             state.currentStep = step
+            state.phase = .sampling
             state.lastUpdate = Date()
             return
         }
         if let completion = matchCompletion(trimmed) {
             recordCompletion(completion, into: &state)
+            state.phase = .encoding
             return
         }
+        if isBatchComplete(trimmed) {
+            state.phase = .done
+            return
+        }
+    }
+
+    private static func isBatchComplete(_ line: String) -> Bool {
+        let lower = line.lowercased()
+        return lower.contains("batch complete") || lower.contains("✓ done") || lower.hasPrefix("done in ")
     }
 
     private static let passHeaderRegex = try! NSRegularExpression(pattern: #"^=+\s*Pass\s+(\d+)/(\d+)\s*=+$"#)

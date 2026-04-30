@@ -71,23 +71,39 @@ struct TailRowView: View {
             Capsule(style: .continuous)
                 .fill(.quaternary.opacity(0.5))
         )
+        .help(statusTooltip)
     }
 
     private var statusColor: Color {
         switch session.status {
         case .live: return .green
+        case .sampling: return .green
+        case .encoding: return .blue
         case .idle: return .yellow
-        case .stale: return .gray
-        case .terminated: return .red
+        case .stale: return .red
+        case .terminated: return .gray
         }
     }
 
     private var statusLabel: String {
         switch session.status {
         case .live: return "live"
+        case .sampling: return "sampling"
+        case .encoding: return "encoding"
         case .idle: return "idle"
         case .stale: return "stale"
         case .terminated: return "ended"
+        }
+    }
+
+    private var statusTooltip: String {
+        switch session.status {
+        case .live: return "Bytes written within the last 10s"
+        case .sampling: return "Sampling — Draw Things writes one step every 60–90s"
+        case .encoding: return "Encoding MP4 — brief silence is normal"
+        case .idle: return "Quiet, but Draw Things and gRPC look healthy"
+        case .stale: return "Draw Things process gone or gRPC unreachable"
+        case .terminated: return "Tail process ended"
         }
     }
 }

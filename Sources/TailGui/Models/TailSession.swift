@@ -5,6 +5,8 @@ import Combine
 final class TailSession: ObservableObject, Identifiable {
     enum Status: Equatable {
         case live
+        case sampling
+        case encoding
         case idle
         case stale
         case terminated
@@ -25,6 +27,7 @@ final class TailSession: ObservableObject, Identifiable {
     @Published var verdict: Verdict = .pending
     @Published var lastWriteAt: Date
     @Published var renderState: RenderState = RenderState()
+    @Published var health: RenderHealth = .unknown
 
     nonisolated var id: String { filePath }
 
@@ -71,13 +74,34 @@ final class TailSession: ObservableObject, Identifiable {
     func recomputeStatus(now: Date = Date()) {
         guard status != .terminated else { return }
         let delta = now.timeIntervalSince(lastWriteAt)
-        if delta < 10 {
-            status = .live
-        } else if delta < 60 {
-            status = .idle
-        } else {
+
+        // External signals win when we have actual data and they're red.
+        if health.hasBeenChecked && !health.isAlive {
             status = .stale
+            return
         }
+
+        // Otherwise, log silence is interpreted relative to the render's phase.
+        let phase = renderState.phase
+        switch (phase, delta) {
+        case (_, ..<10):
+            status = .live
+        case (.sampling, ..<180):
+            status = .sampling
+        case (.encoding, ..<30):
+            status = .encoding
+        case (.betweenClips, ..<60):
+            status = .live
+        case (.done, _):
+            status = .live
+        default:
+            status = .idle
+        }
+    }
+
+    func updateHealth(_ newHealth: RenderHealth) {
+        health = newHealth
+        recomputeStatus()
     }
 
     func appendChunk(_ data: Data) {
