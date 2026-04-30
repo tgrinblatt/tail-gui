@@ -2,13 +2,17 @@ import SwiftUI
 
 struct TailToolbar: ToolbarContent {
     @ObservedObject var controller: WindowController
-    @AppStorage("TailGui.appearance") private var appearanceRaw: String = AppearanceMode.system.rawValue
+    @AppStorage("TailGui.appearance") private var appearanceRaw: String = AppearanceMode.dark.rawValue
     @State private var showOpacityPopover = false
 
     var body: some ToolbarContent {
+        ToolbarItem(placement: .principal) {
+            Spacer()
+        }
+
         ToolbarItem(placement: .primaryAction) {
             Button {
-                cycleAppearance()
+                toggleAppearance()
             } label: {
                 Image(systemName: appearanceSymbol)
             }
@@ -56,12 +60,11 @@ struct TailToolbar: ToolbarContent {
     }
 
     private var appearance: AppearanceMode {
-        AppearanceMode(rawValue: appearanceRaw) ?? .system
+        AppearanceMode(rawValue: appearanceRaw) ?? .dark
     }
 
     private var appearanceSymbol: String {
         switch appearance {
-        case .system: return "circle.dashed"
         case .light: return "sun.max.fill"
         case .dark: return "moon.fill"
         }
@@ -69,20 +72,13 @@ struct TailToolbar: ToolbarContent {
 
     private var appearanceTooltip: String {
         switch appearance {
-        case .system: return "Appearance: System (⇧⌘D)"
-        case .light: return "Appearance: Light (⇧⌘D)"
-        case .dark: return "Appearance: Dark (⇧⌘D)"
+        case .light: return "Switch to Dark mode (⇧⌘D)"
+        case .dark: return "Switch to Light mode (⇧⌘D)"
         }
     }
 
-    private func cycleAppearance() {
-        let next: AppearanceMode
-        switch appearance {
-        case .system: next = .light
-        case .light: next = .dark
-        case .dark: next = .system
-        }
-        appearanceRaw = next.rawValue
+    private func toggleAppearance() {
+        appearanceRaw = (appearance == .dark ? AppearanceMode.light : .dark).rawValue
     }
 }
 
